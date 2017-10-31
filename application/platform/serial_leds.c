@@ -362,7 +362,7 @@ void SetSerialLedsEffect( const light_mode_t light_mode, color_t  *cur_color, co
             one_wire_led[(one_wire_led_t)i].color[0] = led_color[RED_C];
             one_wire_led[(one_wire_led_t)i].color[1] = led_color[NONE_C];
             one_wire_led[(one_wire_led_t)i].color_number = 2;
-            one_wire_led[(one_wire_led_t)i].period = SHINE_HIGH_SPEED_PERIOD; 
+            one_wire_led[(one_wire_led_t)i].period = SHINE_MEDIUM_SPEED_PERIOD; 
             one_wire_led[(one_wire_led_t)i].tick = 0;
         }
         CloseEyes();
@@ -379,38 +379,42 @@ void SetSerialLedsEffect( const light_mode_t light_mode, color_t  *cur_color, co
         }
         CloseEyes();
         break;
-    case LIGHTS_MODE_CHARGING: 
-        if(1 < 46000)     //charging low power -- test code 
+    case LIGHTS_MODE_CHARGING_POWER_LOW: 
+
+        for(uint8_t i = FRONT_LEFT_LED; i <= BACK_RIGHT_LED; i++)
         {
-            for(uint8_t i = FRONT_LEFT_LED; i <= BACK_RIGHT_LED; i++)
-            {
-                one_wire_led[(one_wire_led_t)i].color[0] = led_color[RED_C];
-                one_wire_led[(one_wire_led_t)i].color[1] = led_color[ORANGE_C];
-                one_wire_led[(one_wire_led_t)i].color_number = 2;
-                one_wire_led[(one_wire_led_t)i].period = SHINE_LOW_SPEED_PERIOD;
-                one_wire_led[(one_wire_led_t)i].tick = 0;
-            }
+            one_wire_led[(one_wire_led_t)i].color[0] = led_color[RED_C];
+            one_wire_led[(one_wire_led_t)i].color[1] = led_color[ORANGE_C];
+            one_wire_led[(one_wire_led_t)i].color_number = 2;
+            one_wire_led[(one_wire_led_t)i].period = SHINE_LOW_SPEED_PERIOD;
+            one_wire_led[(one_wire_led_t)i].tick = 0;
         }
-        else if(2 < 50000)    //charging  power medium -- test code 
+       
+        CloseEyes();
+      break;
+      case LIGHTS_MODE_CHARGING_POWER_MEDIUM:
+
+        for(uint8_t i = FRONT_LEFT_LED; i <= BACK_RIGHT_LED; i++)
         {
-            for(uint8_t i = FRONT_LEFT_LED; i <= BACK_RIGHT_LED; i++)
-            {
-                one_wire_led[(one_wire_led_t)i].color[0] = led_color[ORANGE_C];
-                one_wire_led[(one_wire_led_t)i].color[1] = led_color[GREEN_C];
-                one_wire_led[(one_wire_led_t)i].color_number = 2;
-                one_wire_led[(one_wire_led_t)i].period = SHINE_LOW_SPEED_PERIOD;
-                one_wire_led[(one_wire_led_t)i].tick = 0;
-            }
+            one_wire_led[(one_wire_led_t)i].color[0] = led_color[ORANGE_C];
+            one_wire_led[(one_wire_led_t)i].color[1] = led_color[GREEN_C];
+            one_wire_led[(one_wire_led_t)i].color_number = 2;
+            one_wire_led[(one_wire_led_t)i].period = SHINE_LOW_SPEED_PERIOD;
+            one_wire_led[(one_wire_led_t)i].tick = 0;
         }
-        else        //charging power full -- test code 
+        
+
+        CloseEyes();
+      break;
+      case LIGHTS_MODE_CHARGING_FULL: 
+       
+        for(uint8_t i = FRONT_LEFT_LED; i <= BACK_RIGHT_LED; i++)
         {
-            for(uint8_t i = FRONT_LEFT_LED; i <= BACK_RIGHT_LED; i++)
-            {
-                one_wire_led[(one_wire_led_t)i].color[0] = led_color[GREEN_C];
-                one_wire_led[(one_wire_led_t)i].color_number = 1;
-                one_wire_led[(one_wire_led_t)i].tick = 0;
-            }
+            one_wire_led[(one_wire_led_t)i].color[0] = led_color[GREEN_C];
+            one_wire_led[(one_wire_led_t)i].color_number = 1;
+            one_wire_led[(one_wire_led_t)i].tick = 0;
         }
+        
         CloseEyes();
       break;
     case LIGHTS_MODE_TURN_LEFT:
