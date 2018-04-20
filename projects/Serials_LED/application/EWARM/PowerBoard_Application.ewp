@@ -618,7 +618,7 @@
         </option>
         <option>
           <name>OOCOutputFile</name>
-          <state>NOAH_PB_Application.hex</state>
+          <state>serials_led.hex</state>
         </option>
         <option>
           <name>OOCCommandLineProducer</name>

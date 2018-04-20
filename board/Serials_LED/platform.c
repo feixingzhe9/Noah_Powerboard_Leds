@@ -85,14 +85,14 @@ const platform_gpio_t platform_gpio_pins[] =
   [MICO_GPIO_UART1_TX]          = { GPIOA,  9 },
   [MICO_GPIO_UART1_RX]          = { GPIOA, 10 },
    
-  [MICO_GPIO_FRONT_LEFT_LED]      = { GPIOB, 0},
-    [MICO_GPIO_FRONT_RIGHT_LED]     = { GPIOB, 1 },
+  [MICO_GPIO_FRONT_LEFT_LED]      = { GPIOA, 7},
+  [MICO_GPIO_FRONT_RIGHT_LED]     = { GPIOA, 6 },
   
-    [MICO_GPIO_BACK_RIGHT_LED]      = { GPIOA, 6},
-    [MICO_GPIO_BACK_LEFT_LED]       = { GPIOA, 7 },
+  [MICO_GPIO_BACK_RIGHT_LED]      = { GPIOB, 1},
+  [MICO_GPIO_BACK_LEFT_LED]       = { GPIOB, 0 },
   
    
-    [MICO_GPIO_EYES_LED]       = { GPIOB,  14 },
+  [MICO_GPIO_EYES_LED]       = { GPIOB,  14 },
 };
 
 const platform_uart_t platform_uart_peripherals[] =

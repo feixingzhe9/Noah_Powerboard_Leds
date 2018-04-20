@@ -12,10 +12,10 @@
 #define SYSTICK_PERIOD  100
 #define os_get_time                   HAL_GetTick
 #define DEFAULT_NAME        "POWERBOARD"
-#define MODEL               "PB_CARSON_LEDS"
+#define MODEL               "PB_NOAH_LEDS"
 
-#define HW_VERSION                      "CARSON_PM_V0.0"
-#define SW_VERSION                      "CarsonC001M09A001"
+#define HW_VERSION                      "00"
+#define SW_VERSION                      "NOAHC001M10A003"
 #define PROTOCOL_VERSION                "20170607P0001"
 
 /* MICO RTOS tick rate in Hz */
