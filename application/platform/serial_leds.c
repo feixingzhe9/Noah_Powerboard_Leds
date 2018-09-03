@@ -624,9 +624,10 @@ static uint8_t CalCheckSum(uint8_t *data, uint8_t len)
     return sum;
 }
 extern UART_HandleTypeDef huart2;
+uint8_t leds_send_buf[LED_FRAME_LEN];
 void LedsSendFrame(rcv_serial_leds_frame_t *leds_frame)
 {
-    uint8_t leds_send_buf[LED_FRAME_LEN];
+    
     leds_send_buf[0] = FRAME_HEADER;
     leds_send_buf[1] = 0x0a;
     leds_send_buf[2] = FRAME_TYPE_LEDS_CONTROL;
@@ -636,9 +637,33 @@ void LedsSendFrame(rcv_serial_leds_frame_t *leds_frame)
     
     HAL_StatusTypeDef uart_err = HAL_UART_Transmit(&huart2, leds_send_buf, sizeof(leds_send_buf), 10);
 }
-   
-void AckLedsFrame(light_mode_t light_mode, color_t *cur_color, uint8_t period )
+
+
+static HAL_StatusTypeDef serials_leds_uart_send(uint8_t *data, uint8_t len)
 {
+    return HAL_UART_Transmit(&huart2, data, len, 10);
+}
+
+static void ack_version(void)
+{
+    uint8_t version_len = sizeof(SW_VERSION);
+    memset(leds_send_buf, 0, sizeof(leds_send_buf));
+    
+    leds_send_buf[0] = FRAME_HEADER;
+    leds_send_buf[1] = version_len + 5;
+    leds_send_buf[2] = FRAME_TYPE_VERSION;
+    memcpy(&leds_send_buf[3], SW_VERSION, version_len);
+    
+    leds_send_buf[3 + version_len] = CalCheckSum(leds_send_buf, 3 + version_len);
+    leds_send_buf[4 + version_len] = FRAME_FOOTER;
+    serials_leds_uart_send(leds_send_buf, 5 + version_len);
+}
+
+
+
+static void AckLedsFrame(light_mode_t light_mode, color_t *cur_color, uint8_t period )
+{
+  /*
     rcv_serial_leds_frame_t leds_frame;
     leds_frame.color.r = cur_color->r;
     leds_frame.color.g = cur_color->g;
@@ -647,12 +672,29 @@ void AckLedsFrame(light_mode_t light_mode, color_t *cur_color, uint8_t period )
     leds_frame.period = period;
     
     LedsSendFrame(&leds_frame); 
+    */
+    
+    memset(leds_send_buf, 0, sizeof(leds_send_buf));
+
+    leds_send_buf[0] = FRAME_HEADER;
+    leds_send_buf[1] = 0x0a;
+    leds_send_buf[2] = FRAME_TYPE_LEDS_CONTROL;
+    leds_send_buf[3] = light_mode;
+    leds_send_buf[4] = cur_color->r;
+    leds_send_buf[5] = cur_color->g;
+    leds_send_buf[6] = cur_color->b;
+    leds_send_buf[7] = period;
+    leds_send_buf[8] = CalCheckSum(leds_send_buf, 8);
+    leds_send_buf[9] = FRAME_FOOTER;
+    serials_leds_uart_send(leds_send_buf, 10);
 }
+
 void SerialLedsProc(uint8_t const *data)
 {
     SetSerialLedsEffect( (light_mode_t)data[3], (color_t*)&data[4], data[7] );
     AckLedsFrame((light_mode_t)data[3], (color_t*)&data[4], data[7] );
 }
+
 led_com_opt_t led_com_opt = {0};
 
 void leds_protocol_period(void)
@@ -680,12 +722,15 @@ void leds_protocol_period(void)
                     {
                         switch(ctype)
                         {
-                        case FRAME_TYPE_LEDS_CONTROL:
-                            SerialLedsProc(led_com_opt.rcv_buf);
-                            
-                            break;
-                        default :
-                            break;
+                            case FRAME_TYPE_LEDS_CONTROL:
+                                SerialLedsProc(led_com_opt.rcv_buf);
+                                
+                                break;
+                            case FRAME_TYPE_VERSION:
+                                ack_version();
+                                break;
+                            default :
+                                break;
                         }
                     }
                     

@@ -11,6 +11,7 @@
 #include "mico_platform.h"
 
 #define FRAME_TYPE_LEDS_CONTROL         0x01
+#define FRAME_TYPE_VERSION              0x02
 
 #define LED_FRAME_LEN                   10
 

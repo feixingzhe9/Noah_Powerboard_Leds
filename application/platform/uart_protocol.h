@@ -14,6 +14,7 @@
 #define FRAME_FOOTER                    0xA5
 
 #define FRAME_TYPE_LEDS_CONTROL         0x01
+#define FRAME_TYPE_VERSION              0x02
 
 typedef struct _serial_frame_t {
   uint8_t               header;
