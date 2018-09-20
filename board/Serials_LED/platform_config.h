@@ -15,7 +15,7 @@
 #define MODEL               "PB_NOAH_LEDS"
 
 #define HW_VERSION                      "00"
-#define SW_VERSION                      "NOAHC001M10A003"
+#define SW_VERSION                      "NOAHC001M10A004"
 #define PROTOCOL_VERSION                "20170607P0001"
 
 /* MICO RTOS tick rate in Hz */

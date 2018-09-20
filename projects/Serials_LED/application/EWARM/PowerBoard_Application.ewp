@@ -3878,13 +3878,6 @@
       <name>$PROJ_DIR$\..\..\..\..\application\menu.c</name>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\..\..\..\application\PowerBoard.c</name>
-      <excluded>
-        <configuration>Debug</configuration>
-        <configuration>test</configuration>
-      </excluded>
-    </file>
-    <file>
       <name>$PROJ_DIR$\..\..\..\..\application\Update_for_OTA.c</name>
     </file>
     <file>
