@@ -69,18 +69,8 @@ OSStatus SerialLeds_Init( void )
     return err;
 }
 
-void MX_GPIO_Init(void)
-{
-
-    /* GPIO Ports Clock Enable */
-    __HAL_RCC_GPIOD_CLK_ENABLE();
-    __HAL_RCC_GPIOA_CLK_ENABLE();
-
-}
-
 void MX_USART2_UART_Init(void)
 {
-
     huart2.Instance = USART2;
     huart2.Init.BaudRate = 115200;
     huart2.Init.WordLength = UART_WORDLENGTH_8B;
@@ -98,14 +88,12 @@ void MX_USART2_UART_Init(void)
 
 void MX_DMA_Init(void) 
 {
-    /* DMA controller clock enable */
+
     __HAL_RCC_DMA1_CLK_ENABLE();
 
-    /* DMA interrupt init */
-    /* DMA1_Channel6_IRQn interrupt configuration */
     HAL_NVIC_SetPriority(DMA1_Channel6_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
-    /* DMA1_Channel7_IRQn interrupt configuration */
+
     HAL_NVIC_SetPriority(DMA1_Channel7_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
 
@@ -118,16 +106,8 @@ void uart_dma_init(UART_HandleTypeDef* huart)
     GPIO_InitTypeDef GPIO_InitStruct;
     if(huart->Instance==USART2)
     {
-        /* USER CODE BEGIN USART2_MspInit 0 */
-
-        /* USER CODE END USART2_MspInit 0 */
-        /* Peripheral clock enable */
         __HAL_RCC_USART2_CLK_ENABLE();
 
-        /**USART2 GPIO Configuration    
-        PA2     ------> USART2_TX
-        PA3     ------> USART2_RX 
-        */
         GPIO_InitStruct.Pin = GPIO_PIN_2;
         GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
         GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
@@ -191,7 +171,7 @@ void start_dma_rcv(void)
 
 void serials_leds_uart_dma_init(void)
 {
-    MX_GPIO_Init();
+    //MX_GPIO_Init();
     MX_DMA_Init();
     MX_USART2_UART_Init();
 
@@ -436,6 +416,7 @@ void OpenEyes(void)
     one_wire_led[EYES_LED].color_number = 1;
 
 }
+
 void CloseEyes(void)
 {
     one_wire_led[EYES_LED].color[0] = led_color[NONE_C];
@@ -443,6 +424,7 @@ void CloseEyes(void)
     one_wire_led[EYES_LED].color_number = 1;
 
 }
+
 #define SHINE_HIGH_SPEED_PERIOD         300/SYSTICK_PERIOD
 #define SHINE_MEDIUM_SPEED_PERIOD       600/SYSTICK_PERIOD
 #define SHINE_LOW_SPEED_PERIOD          1000/SYSTICK_PERIOD
@@ -458,7 +440,7 @@ void SetSerialLedsEffect( const light_mode_t light_mode, color_t  *cur_color, co
 
     if(light_mode == LIGHTS_MODE_SETTING)
     {
-        if( (pre_color.b == cur_color->b)  && (pre_color.g == cur_color->g) && (pre_color.r == cur_color->r))
+        if( (pre_color.b == cur_color->b) && (pre_color.g == cur_color->g) && (pre_color.r == cur_color->r))
         {
             if(pre_period == period)
             {
