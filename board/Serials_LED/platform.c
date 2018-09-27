@@ -40,6 +40,7 @@
 #include "platform_logging.h"
 #include "mico_platform.h"
 #include "fifo.h"
+#include "serial_leds.h"
 
 /******************************************************
 *                      Macros
@@ -245,14 +246,44 @@ extern UART_HandleTypeDef huart2;
   //HAL_UART_IRQHandler(&huart2);
 //}
 
+extern DMA_HandleTypeDef hdma_usart2_rx;
+extern DMA_HandleTypeDef hdma_usart2_tx;
+uint32_t uart_int_idle_cnt = 0;
+uint32_t uart_int_cnt = 0;
+uint32_t uart_rx_len = 0;
 void USART2_IRQHandler(void)
 {
+    uint32_t temp = 0;
+    uart_int_cnt++;
+    HAL_UART_IRQHandler(&huart2);
 
-    FifoPut(fifo, huart2.Instance->DR);
+    if((__HAL_UART_GET_FLAG(&huart2, UART_FLAG_IDLE) != RESET))
+    {
+        uart_int_idle_cnt++;
+        __HAL_DMA_DISABLE(&hdma_usart2_rx);
+        __HAL_UART_CLEAR_IDLEFLAG(&huart2);
+
+        temp = huart2.Instance->SR;
+        temp = huart2.Instance->DR;// clear USART_IT_IDLE state
+
+        HAL_UART_DMAStop(&huart2);
+
+        uart_rx_len = SERIALS_LEDS_UART_RCV_LEN - hdma_usart2_rx.Instance->CNDTR;
+
+        for(uint8_t i = 0; i < uart_rx_len; i++)
+        {
+            FifoPut(fifo, serial_leds_uart_buf[i]);
+        }
+        __HAL_DMA_ENABLE(&hdma_usart2_rx);
+        hdma_usart2_rx.Instance->CNDTR = SERIALS_LEDS_UART_RCV_LEN;
+    }
+
 
     //HAL_UART_IRQHandler(&huart2);
 
 }
+
+
 
 MICO_RTOS_DEFINE_ISR( DMA1_Channel4_IRQHandler )
 {
@@ -261,7 +292,9 @@ MICO_RTOS_DEFINE_ISR( DMA1_Channel4_IRQHandler )
 
 MICO_RTOS_DEFINE_ISR( DMA1_Channel7_IRQHandler )
 {
-  platform_uart_tx_dma_irq( &platform_uart_drivers[MICO_UART_2] );
+  //platform_uart_tx_dma_irq( &platform_uart_drivers[MICO_UART_2] );
+
+    HAL_DMA_IRQHandler(&hdma_usart2_tx);
 }
 
 MICO_RTOS_DEFINE_ISR( DMA1_Channel5_IRQHandler )
@@ -271,11 +304,11 @@ MICO_RTOS_DEFINE_ISR( DMA1_Channel5_IRQHandler )
 
 MICO_RTOS_DEFINE_ISR( DMA1_Channel6_IRQHandler )
 {
-  platform_uart_rx_dma_irq( &platform_uart_drivers[MICO_UART_2] );
+  //platform_uart_rx_dma_irq( &platform_uart_drivers[MICO_UART_2] );
+
+    HAL_DMA_IRQHandler(&hdma_usart2_rx);
+
 }
-
-
-
 
 
 /******************************************************

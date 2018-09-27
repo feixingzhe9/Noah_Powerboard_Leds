@@ -9,10 +9,21 @@
 #include "fifo.h"
 
 
+#define serials_leds_log(M, ...) custom_log("serials_leds", M, ##__VA_ARGS__)
+
 #define LIGHTS_DEBUG
 
 #define LEDS_MODES_N                    LIGHTS_MODE_MAX
 #define LED_EFFECT_N                    10
+
+
+/* Private variables ---------------------------------------------------------*/
+UART_HandleTypeDef huart2;
+DMA_HandleTypeDef hdma_usart2_rx;
+DMA_HandleTypeDef hdma_usart2_tx;
+uint8_t test_data[] = {0x5a,6,0,0,0x60,0xa5};
+uint8_t rcv_buf[50];
+HAL_StatusTypeDef uart_err;
 
 #define serial_leds_log(M, ...) custom_log("SerialLeds", M, ##__VA_ARGS__)
 #define serial_leds_log_trace() custom_log_trace("SerialLeds")
@@ -59,6 +70,140 @@ OSStatus SerialLeds_Init( void )
     return err;
 }
 
+void MX_GPIO_Init(void)
+{
+
+    /* GPIO Ports Clock Enable */
+    __HAL_RCC_GPIOD_CLK_ENABLE();
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+
+}
+
+void MX_USART2_UART_Init(void)
+{
+
+    huart2.Instance = USART2;
+    huart2.Init.BaudRate = 115200;
+    huart2.Init.WordLength = UART_WORDLENGTH_8B;
+    huart2.Init.StopBits = UART_STOPBITS_1;
+    huart2.Init.Parity = UART_PARITY_NONE;
+    huart2.Init.Mode = UART_MODE_TX_RX;
+    huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+    huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+    if (HAL_UART_Init(&huart2) != HAL_OK)
+    {
+        //printf("HAL_UART_Init error !");
+    }
+
+}
+
+
+void MX_DMA_Init(void) 
+{
+    /* DMA controller clock enable */
+    __HAL_RCC_DMA1_CLK_ENABLE();
+
+    /* DMA interrupt init */
+    /* DMA1_Channel6_IRQn interrupt configuration */
+    HAL_NVIC_SetPriority(DMA1_Channel6_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
+    /* DMA1_Channel7_IRQn interrupt configuration */
+    HAL_NVIC_SetPriority(DMA1_Channel7_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
+
+}
+
+
+uint8_t serial_leds_uart_buf[255] = {0x00};
+void uart_dma_init(UART_HandleTypeDef* huart)
+{
+
+    GPIO_InitTypeDef GPIO_InitStruct;
+    if(huart->Instance==USART2)
+    {
+        /* USER CODE BEGIN USART2_MspInit 0 */
+
+        /* USER CODE END USART2_MspInit 0 */
+        /* Peripheral clock enable */
+        __HAL_RCC_USART2_CLK_ENABLE();
+
+        /**USART2 GPIO Configuration    
+        PA2     ------> USART2_TX
+        PA3     ------> USART2_RX 
+        */
+        GPIO_InitStruct.Pin = GPIO_PIN_2;
+        GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+        GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+        HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+        GPIO_InitStruct.Pin = GPIO_PIN_3;
+        GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+        GPIO_InitStruct.Pull = GPIO_NOPULL;
+        HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+        /* USART2 DMA Init */
+        /* USART2_RX Init */
+        hdma_usart2_rx.Instance = DMA1_Channel6;
+        hdma_usart2_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
+        hdma_usart2_rx.Init.PeriphInc = DMA_PINC_DISABLE;
+        hdma_usart2_rx.Init.MemInc = DMA_MINC_ENABLE;
+        hdma_usart2_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+        hdma_usart2_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+        hdma_usart2_rx.Init.Mode = DMA_NORMAL;
+        hdma_usart2_rx.Init.Priority = DMA_PRIORITY_VERY_HIGH;
+        if (HAL_DMA_Init(&hdma_usart2_rx) != HAL_OK)
+        {
+            serials_leds_log("HAL_DMA_Init error !");
+        }
+
+        __HAL_LINKDMA(huart,hdmarx,hdma_usart2_rx);
+
+        /* USART2_TX Init */
+        hdma_usart2_tx.Instance = DMA1_Channel7;
+        hdma_usart2_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
+        hdma_usart2_tx.Init.PeriphInc = DMA_PINC_DISABLE;
+        hdma_usart2_tx.Init.MemInc = DMA_MINC_ENABLE;
+        hdma_usart2_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+        hdma_usart2_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+        hdma_usart2_tx.Init.Mode = DMA_NORMAL;
+        hdma_usart2_tx.Init.Priority = DMA_PRIORITY_LOW;
+        if (HAL_DMA_Init(&hdma_usart2_tx) != HAL_OK)
+        {
+            serials_leds_log("HAL_DMA_Init error !");
+        }
+
+        __HAL_LINKDMA(huart,hdmatx,hdma_usart2_tx);
+
+        HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
+        HAL_NVIC_EnableIRQ(USART2_IRQn);
+    }
+
+}
+
+
+void start_dma_rcv(void)
+{
+    huart2.Instance->CR3 |= USART_CR3_DMAR;
+
+    hdma_usart2_tx.Instance->CNDTR = 5;
+//    hdma_usart2_tx.Instance->CPAR = (uint32_t)&huart2.Instance->DR;
+//    hdma_usart2_tx.Instance->CMAR = *(uint32_t*)test_buf;
+    __HAL_UART_ENABLE_IT(&huart2, UART_IT_IDLE);
+    HAL_UART_Receive_DMA(&huart2, serial_leds_uart_buf, SERIALS_LEDS_UART_RCV_LEN);
+
+}
+
+
+
+void serials_leds_uart_dma_init(void)
+{
+    MX_GPIO_Init();
+    MX_DMA_Init();
+    MX_USART2_UART_Init();
+
+    uart_dma_init(&huart2);
+    start_dma_rcv();
+}
 extern const platform_gpio_t            platform_gpio_pins[];
 static void write_0(void)
 {

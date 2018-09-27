@@ -52,21 +52,17 @@ const char menu[] =
 "          flash device 0 from 0x400 to 0x800\r\n";
 #endif
 
-/* Private variables ---------------------------------------------------------*/
-UART_HandleTypeDef huart2;
-DMA_HandleTypeDef hdma_usart2_rx;
-DMA_HandleTypeDef hdma_usart2_tx;
-uint8_t test_data[] = {0x5a,6,0,0,0x60,0xa5};
-uint8_t rcv_buf[50];
-HAL_StatusTypeDef uart_err;
+
 
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-static void MX_GPIO_Init(void);
-static void MX_USART2_UART_Init(void);
+void MX_GPIO_Init(void);
+void MX_USART2_UART_Init(void);
 //static void UartSendTest(void);
-static void MX_NVIC_Init(void);
+//static void MX_NVIC_Init(void);
+
+
 
 
 int main(void)
@@ -78,17 +74,18 @@ int main(void)
     os_PowerBoard_log( "System clock = %d Hz",HAL_RCC_GetHCLKFreq() );
 
     HAL_Init();
-    MX_GPIO_Init();
 
-    MX_USART2_UART_Init();
-    MX_NVIC_Init();
+    //MX_NVIC_Init();
+
+    serials_leds_uart_dma_init();
     SerialLeds_Init();
 
+#if 0
     if(HAL_UART_Receive_IT(&huart2,rcv_buf,1)!=HAL_OK)
     {
         Error_Handler();
     }
-
+#endif
 
     FifoInit(fifo, fifo_data_in_ram, RCV_DATA_LEN_MAX);
     while (1)
@@ -99,6 +96,7 @@ int main(void)
     }
 
 }
+
 
 #if 0
 uint32_t uart_send_test_start_time = 0;
@@ -159,6 +157,15 @@ void SystemClock_Config(void)
     /* SysTick_IRQn interrupt configuration */
     HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
+
+
+
+
+
+
+
+
+#if 0
 /* USART2 init function */
 static void MX_USART2_UART_Init(void)
 {
@@ -184,21 +191,8 @@ static void MX_NVIC_Init(void)
     HAL_NVIC_EnableIRQ(USART2_IRQn);
 }
 
-/** Configure pins as
- * Analog
- * Input
- * Output
- * EVENT_OUT
- * EXTI
- */
-static void MX_GPIO_Init(void)
-{
 
-    /* GPIO Ports Clock Enable */
-    __HAL_RCC_GPIOD_CLK_ENABLE();
-    __HAL_RCC_GPIOA_CLK_ENABLE();
-
-}
+#endif
 
 /**
  * @brief  This function is executed in case of error occurrence.

@@ -26,6 +26,8 @@
 #define FRAME_HEADER                    0x5A
 #define FRAME_FOOTER                    0xA5
 
+#define SERIALS_LEDS_UART_RCV_LEN       255
+
 typedef enum {
   LIGHTS_MODE_DEFAULT                   = 0x00,
   LIGHTS_MODE_WELCOME                   = 0x01,
@@ -271,5 +273,9 @@ void startDanceLedsMode( void );
 void stopDanceLedsMode( void );
 void serialLedsTick( void );
 void leds_protocol_period(void);
+void serials_leds_uart_dma_init(void);
+
+extern UART_HandleTypeDef huart2;
+extern uint8_t serial_leds_uart_buf[255];
 #endif
 
