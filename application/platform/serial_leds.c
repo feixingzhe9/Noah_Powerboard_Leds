@@ -32,7 +32,6 @@ __IO uint32_t buff[TOTAL] = {0};
 serial_leds_t *serial_leds;
 
 
-
 __IO uint32_t front_left_buff[FRONT_LEFT_LED_NUM] = {0};
 __IO uint32_t front_right_buff[FRONT_RIGHT_LED_NUM] = {0};
 __IO uint32_t back_right_buff[BACK_RIGHT_LED_NUM] = {0};
@@ -97,7 +96,6 @@ void MX_USART2_UART_Init(void)
 
 }
 
-
 void MX_DMA_Init(void) 
 {
     /* DMA controller clock enable */
@@ -112,7 +110,6 @@ void MX_DMA_Init(void)
     HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
 
 }
-
 
 uint8_t serial_leds_uart_buf[255] = {0x00};
 void uart_dma_init(UART_HandleTypeDef* huart)
@@ -180,20 +177,17 @@ void uart_dma_init(UART_HandleTypeDef* huart)
 
 }
 
-
 void start_dma_rcv(void)
 {
     huart2.Instance->CR3 |= USART_CR3_DMAR;
 
-    hdma_usart2_tx.Instance->CNDTR = 5;
+//    hdma_usart2_tx.Instance->CNDTR = 5;
 //    hdma_usart2_tx.Instance->CPAR = (uint32_t)&huart2.Instance->DR;
 //    hdma_usart2_tx.Instance->CMAR = *(uint32_t*)test_buf;
     __HAL_UART_ENABLE_IT(&huart2, UART_IT_IDLE);
     HAL_UART_Receive_DMA(&huart2, serial_leds_uart_buf, SERIALS_LEDS_UART_RCV_LEN);
 
 }
-
-
 
 void serials_leds_uart_dma_init(void)
 {
@@ -461,6 +455,7 @@ void SetSerialLedsEffect( const light_mode_t light_mode, color_t  *cur_color, co
     {
         return;
     }
+
     if(light_mode == LIGHTS_MODE_SETTING)
     {
         if( (pre_color.b == cur_color->b)  && (pre_color.g == cur_color->g) && (pre_color.r == cur_color->r))
@@ -781,10 +776,16 @@ void LedsSendFrame(rcv_serial_leds_frame_t *leds_frame)
     HAL_StatusTypeDef uart_err = HAL_UART_Transmit(&huart2, leds_send_buf, sizeof(leds_send_buf), 10);
 }
 
-
 static HAL_StatusTypeDef serials_leds_uart_send(uint8_t *data, uint8_t len)
 {
-    return HAL_UART_Transmit(&huart2, data, len, 10);
+    while ((HAL_UART_GetState(&huart2) == HAL_UART_STATE_BUSY_TX) && (HAL_UART_GetState(&huart2) != HAL_UART_STATE_READY));
+    __HAL_DMA_ENABLE(&hdma_usart2_tx);
+    return HAL_UART_Transmit_DMA(&huart2, data, len);
+
+    //hdma_usart2_tx.Instance->CNDTR = len;
+    //hdma_usart2_tx.Instance->CMAR = (uint32_t)data;
+    //__HAL_DMA_ENABLE(&hdma_usart2_tx);
+
 }
 
 static void ack_version(void)

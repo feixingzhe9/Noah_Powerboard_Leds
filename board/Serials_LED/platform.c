@@ -266,7 +266,7 @@ void USART2_IRQHandler(void)
         temp = huart2.Instance->SR;
         temp = huart2.Instance->DR;// clear USART_IT_IDLE state
 
-        HAL_UART_DMAStop(&huart2);
+        //HAL_UART_DMAStop(&huart2);
 
         uart_rx_len = SERIALS_LEDS_UART_RCV_LEN - hdma_usart2_rx.Instance->CNDTR;
 
@@ -274,8 +274,9 @@ void USART2_IRQHandler(void)
         {
             FifoPut(fifo, serial_leds_uart_buf[i]);
         }
-        __HAL_DMA_ENABLE(&hdma_usart2_rx);
         hdma_usart2_rx.Instance->CNDTR = SERIALS_LEDS_UART_RCV_LEN;
+        __HAL_DMA_ENABLE(&hdma_usart2_rx);
+
     }
 
 
@@ -295,6 +296,8 @@ MICO_RTOS_DEFINE_ISR( DMA1_Channel7_IRQHandler )
   //platform_uart_tx_dma_irq( &platform_uart_drivers[MICO_UART_2] );
 
     HAL_DMA_IRQHandler(&hdma_usart2_tx);
+    //__HAL_DMA_DISABLE(&hdma_usart2_tx);
+
 }
 
 MICO_RTOS_DEFINE_ISR( DMA1_Channel5_IRQHandler )

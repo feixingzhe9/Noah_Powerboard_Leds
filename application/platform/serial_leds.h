@@ -13,7 +13,7 @@
 #define FRAME_TYPE_LEDS_CONTROL         0x01
 #define FRAME_TYPE_VERSION              0x02
 
-#define LED_FRAME_LEN                   10
+#define LED_FRAME_LEN                   50
 
 #define BITBAND(addr, bitnum) 		((addr & 0xF0000000)+0x2000000+((addr &0xFFFFF)<<5)+(bitnum<<2))
 #define MEM_ADDR(addr)  					*((__IO uint32_t*)(addr))
