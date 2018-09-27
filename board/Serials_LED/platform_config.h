@@ -19,7 +19,7 @@
 #define PROTOCOL_VERSION                "20170607P0001"
 
 /* MICO RTOS tick rate in Hz */
-#define NBOS_DEFAULT_TICK_RATE_HZ                   (1000) 
+#define NBOS_DEFAULT_TICK_RATE_HZ                   (1000)
 
 //#define SIZE_OPTIMIZE
 #define NO_MICO_RTOS

@@ -3876,12 +3876,21 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\..\..\..\application\menu.c</name>
+      <excluded>
+        <configuration>Debug</configuration>
+      </excluded>
     </file>
     <file>
       <name>$PROJ_DIR$\..\..\..\..\application\Update_for_OTA.c</name>
+      <excluded>
+        <configuration>Debug</configuration>
+      </excluded>
     </file>
     <file>
       <name>$PROJ_DIR$\..\..\..\..\application\ymodem.c</name>
+      <excluded>
+        <configuration>Debug</configuration>
+      </excluded>
     </file>
   </group>
   <group>
