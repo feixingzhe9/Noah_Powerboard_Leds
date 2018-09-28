@@ -63,17 +63,9 @@ int main(void)
 
     HAL_Init();
 
-    serials_leds_uart_dma_init();
-    SerialLeds_Init();
+    init_serial_leds();
 
-#if 0
-    if(HAL_UART_Receive_IT(&huart2,rcv_buf,1)!=HAL_OK)
-    {
-        Error_Handler();
-    }
-#endif
-
-    FifoInit(fifo, fifo_data_in_ram, RCV_DATA_LEN_MAX);
+    init_fifo(fifo, fifo_data_in_ram, RCV_DATA_LEN_MAX);
     while (1)
     {
         //Main_Menu();

@@ -127,7 +127,7 @@ static OSStatus recSerialLedsFrameProcess( serial_t *serial )
   ligthMode = recSerialLedsFrame->lightMode;
   lightEffect = (recSerialLedsFrame->lightEffectH << 8) | recSerialLedsFrame->lightEffectL;
   
-  SetSerialLedsEffect( (light_mode_t)ligthMode, NULL, 0 );
+  set_serial_leds_effect( (light_mode_t)ligthMode, NULL, 0 );
 
   err = ackSerialLedsFrameProcess( serial );
 
@@ -241,7 +241,7 @@ void protocol_period( void )
     serial->rx_info->pData = 0;
     if( serial->rx_info->startTime == 0 )
     {
-      SetSerialLedsEffect( LIGHTS_MODE_NOMAL, NULL, 0 );
+      set_serial_leds_effect( LIGHTS_MODE_NOMAL, NULL, 0 );
       protocol_log( "start communicating" );
     }
     serial->rx_info->startTime = os_get_time();
@@ -254,7 +254,7 @@ void protocol_period( void )
     {
       serial->rx_info->startTime = 0;
       protocol_log( "communicate timeout" );
-      SetSerialLedsEffect( LIGHTS_MODE_COM_ERROR, NULL, 0 );
+      set_serial_leds_effect( LIGHTS_MODE_COM_ERROR, NULL, 0 );
 #if 0
 #ifdef COMM_DMA_USE_INT
       stopDmaRecive( serial->uart_serial->uartHandle );

@@ -1,15 +1,12 @@
-
 #include "fifo.h"
 
-
-static uint32_t FifoSurplusSize(fifo_t *head); //
-static uint8_t IsFifoFull(fifo_t *head);         //
+static uint8_t is_fifo_full(fifo_t *head);         //
 
 fifo_data_struct fifo_data_in_ram[RCV_DATA_LEN_MAX];
 fifo_t fifo_in_ram;
 fifo_t *fifo = &fifo_in_ram;
 
-uint8_t FifoInit(fifo_t *head, fifo_data_struct *buf, uint32_t len)
+uint8_t init_fifo(fifo_t *head, fifo_data_struct *buf, uint32_t len)
 {
     if(head == NULL)
     {
@@ -22,7 +19,7 @@ uint8_t FifoInit(fifo_t *head, fifo_data_struct *buf, uint32_t len)
     return TRUE;
 }
 
-void FifoRst(fifo_t *head)
+void rst_fifo(fifo_t *head)
 {
     if(head == NULL)
     {
@@ -32,18 +29,18 @@ void FifoRst(fifo_t *head)
     head->rear = 0;
 }
 
-uint8_t IsFifoEmpty(fifo_t *head)
+uint8_t is_fifo_empty(fifo_t *head)
 {
     return ((head->front == head->rear) ? TRUE : FALSE);
 }
 
-static uint8_t IsFifoFull(fifo_t *head)
+static uint8_t is_fifo_full(fifo_t *head)
 {
     return ((head->front == ((head->rear + 1) % head->size)) ? TRUE : FALSE);
 }
 
 
-uint32_t FifoValidSize(fifo_t *head)
+uint32_t get_fifo_valid_size(fifo_t *head)
 {
     return ((head->rear < head->front)
             ? (head->rear + head->size - head->front)
@@ -52,13 +49,13 @@ uint32_t FifoValidSize(fifo_t *head)
 
 
 
-uint8_t FifoPut(fifo_t *head, const fifo_data_struct data)
+uint8_t put_byte_to_fifo(fifo_t *head, const fifo_data_struct data)
 {
     if(head == NULL)
     {
         return FALSE;
     }
-    if(IsFifoFull(head) == TRUE)
+    if(is_fifo_full(head) == TRUE)
     {
         return FALSE;
     }
@@ -71,13 +68,13 @@ uint8_t FifoPut(fifo_t *head, const fifo_data_struct data)
 }
 
 
-uint8_t FifoGet(fifo_t *head, fifo_data_struct *data)
+uint8_t get_byte_from_fifo(fifo_t *head, fifo_data_struct *data)
 {
     if(head == NULL)
     {
         return FALSE;
     }
-    if(IsFifoEmpty(head) == TRUE)
+    if(is_fifo_empty(head) == TRUE)
     {
         return FALSE;
     }

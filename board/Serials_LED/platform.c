@@ -272,7 +272,7 @@ void USART2_IRQHandler(void)
 
         for(uint8_t i = 0; i < uart_rx_len; i++)
         {
-            FifoPut(fifo, serial_leds_uart_buf[i]);
+            put_byte_to_fifo(fifo, serial_leds_uart_buf[i]);
         }
         hdma_usart2_rx.Instance->CNDTR = SERIALS_LEDS_UART_RCV_LEN;
         __HAL_DMA_ENABLE(&hdma_usart2_rx);

@@ -1,4 +1,4 @@
-/* 
+/*
 *  Author: Adam Huang
 *  Date:2016/6/15
 */
@@ -15,11 +15,11 @@
 
 #define LED_FRAME_LEN                   50
 
-#define BITBAND(addr, bitnum) 		((addr & 0xF0000000)+0x2000000+((addr &0xFFFFF)<<5)+(bitnum<<2))
-#define MEM_ADDR(addr)  					*((__IO uint32_t*)(addr))
+#define BITBAND(addr, bitnum)           ((addr & 0xF0000000)+0x2000000+((addr &0xFFFFF)<<5)+(bitnum<<2))
+#define MEM_ADDR(addr)                  *((__IO uint32_t*)(addr))
 
-#define GPIOout(GPIOx,bit)				MEM_ADDR(BITBAND((uint32_t)(&GPIOx->ODR), bit))
-#define GPIOin(GPIOx,bit)					MEM_ADDR(BITBAND((uint32_t)(&GPIOx->IDR), bit))
+#define GPIOout(GPIOx,bit)              MEM_ADDR(BITBAND((uint32_t)(&GPIOx->ODR), bit))
+#define GPIOin(GPIOx,bit)               MEM_ADDR(BITBAND((uint32_t)(&GPIOx->IDR), bit))
 
 #define LED		GPIOout(GPIOC, 6)//GPIOout(GPIOB, 12)
 
@@ -45,7 +45,7 @@ typedef enum {
   LIGHTS_MODE_MAX
 } lightsMode_t;
 
-typedef enum 
+typedef enum
 {
     LIGHTS_MODE_NONE                    = 0,
     LIGHTS_MODE_NORMAL                   = 1,
@@ -58,8 +58,8 @@ typedef enum
     LIGHTS_MODE_TURN_RIGHT,
     LIGHTS_MODE_COM_ERROR,
     LIGHTS_MODE_EMERGENCY_STOP,
-      
-    
+
+
     LIGHTS_MODE_SETTING                 = 0xff,
 }light_mode_t;
 
@@ -80,7 +80,7 @@ typedef enum
 #define TOTAL                   148
 #define LEVEL                   20
 
-#define SERIAL_LEDS_PERIOD      10 
+#define SERIAL_LEDS_PERIOD      10
 
 #if 1
 #define asm            __asm
@@ -90,7 +90,7 @@ typedef enum
                               asm("nop");asm("nop");asm("nop");asm("nop");\
                               asm("nop");asm("nop");asm("nop");asm("nop");\
                               asm("nop");asm("nop");} while(1==0)
-                                
+
 #define delay_600ns()     do { asm("nop");asm("nop");asm("nop");asm("nop");\
                                asm("nop");asm("nop");asm("nop");asm("nop");\
                                asm("nop");asm("nop");asm("nop");asm("nop");\
@@ -103,18 +103,18 @@ typedef enum
                                asm("nop");asm("nop");asm("nop");asm("nop");\
                                asm("nop");asm("nop");asm("nop");asm("nop");\
                                asm("nop");asm("nop");} while(1==0)
-                                
+
 #define delay_us(n)       do { for(uint32_t i=0;i<n;i++){delay_300ns();delay_600ns();}\
                                 } while(0==1)
-                                
-                                
+
+
 #define delay_200ns()     do {asm("nop");asm("nop");asm("nop");asm("nop");\
                               asm("nop");asm("nop");asm("nop");asm("nop");\
                               asm("nop");asm("nop");asm("nop");asm("nop");\
                               asm("nop");asm("nop");asm("nop");asm("nop");\
                               asm("nop");\
                               } while(1==0)
-                                
+
 #define delay_500ns()     do { asm("nop");asm("nop");asm("nop");asm("nop");\
                                asm("nop");asm("nop");asm("nop");asm("nop");\
                                asm("nop");asm("nop");asm("nop");asm("nop");\
@@ -129,7 +129,7 @@ typedef enum
 
 #define delay_ms          HAL_Delay
 #endif
-                               
+
 #define FRONT_LEFT_LED_NUM          16
 #define FRONT_RIGHT_LED_NUM         16
 #define BACK_RIGHT_LED_NUM          5
@@ -139,10 +139,10 @@ typedef enum
 
 #if 1
 #define  LedOutputHigh(gpio)    platform_gpio_pins[gpio].port->BSRR = (uint16_t) ( 1 << platform_gpio_pins[gpio].pin_number )
-#define  LedOutputLow(gpio)     platform_gpio_pins[gpio].port->BSRR = (uint32_t) ( 1 << platform_gpio_pins[gpio].pin_number ) << 16;      
+#define  LedOutputLow(gpio)     platform_gpio_pins[gpio].port->BSRR = (uint32_t) ( 1 << platform_gpio_pins[gpio].pin_number ) << 16;
 #else
 #define  LedOutputHigh(gpio)    gpio.port->BSRR = (uint16_t) ( 1 << gpio.pin_number )
-#define  LedOutputLow(gpio)     gpio.port->BSRR = (uint32_t) ( 1 << gpio.pin_number ) << 16; 
+#define  LedOutputLow(gpio)     gpio.port->BSRR = (uint32_t) ( 1 << gpio.pin_number ) << 16;
 #endif
 typedef struct
 {
@@ -157,20 +157,20 @@ typedef struct
     uint8_t     period;
 }light_mode_para_t;
 
-typedef struct 
+typedef struct
 {
     uint16_t shine_period;
     uint8_t led_num;
     uint8_t on_off;
     color_t color;
-}OneWireLedCtrl_t;                                 
-     
+}OneWireLedCtrl_t;
+
 
 
 
 //////////////////////////////////////////
 /////////////////////////////////////////
-typedef enum 
+typedef enum
 {
     RED_C = 0,
     GREEN_C,
@@ -179,21 +179,21 @@ typedef enum
     WHITE_C,
     CYAN_C,
     GOLD_C,
-    
+
     SETTING_C,
     NONE_C,
-  
+
 }led_color_t;
 typedef enum
 {
     FRONT_LEFT_LED = 0,
     FRONT_RIGHT_LED,
     BACK_LEFT_LED,
-    BACK_RIGHT_LED,    
-    EYES_LED, 
-    
+    BACK_RIGHT_LED,
+    EYES_LED,
+
     LED_NONE,
-    
+
 }one_wire_led_t;
 
 typedef struct
@@ -229,7 +229,7 @@ typedef struct _serial_leds_t {
 
 
 #pragma pack(1)
-typedef struct 
+typedef struct
 {
 //  uint8_t               ctype;
   uint8_t               cur_light_mode;
@@ -256,7 +256,7 @@ void reset_led(void);
 //void delay_400ns(void);
 //void delay_900ns(void);
 
-OSStatus SerialLeds_Init( void );
+OSStatus init_serial_leds( void );
 
 uint32_t change_led(uint32_t word,uint8_t level);
 
@@ -265,13 +265,12 @@ void single_color_water_led(uint32_t color,uint8_t times);
 void style_charge_function( uint32_t color );
 //void test_nsDelay(void);
 
-void SetSerialLedsEffect( light_mode_t lightsMode, color_t *color, uint8_t period );
+void set_serial_leds_effect( light_mode_t lightsMode, color_t *color, uint8_t period );
 
-void setCurLedsMode( lightsMode_t lightsMode );
 
 void startDanceLedsMode( void );
 void stopDanceLedsMode( void );
-void serialLedsTick( void );
+void serial_leds_tick( void );
 void leds_protocol_period(void);
 void serials_leds_uart_dma_init(void);
 

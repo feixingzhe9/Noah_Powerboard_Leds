@@ -460,27 +460,27 @@ void Main_Menu(void)
     }
     else if(strcmp(cmdname, "c") == 0 || strcmp(cmdname, "M") == 0)  {
       if (findCommandPara(cmdbuf, "0", NULL, 0) != -1){
-        SetSerialLedsEffect( LIGHTS_MODE_NOMAL, NULL, 0 );
+        set_serial_leds_effect( LIGHTS_MODE_NOMAL, NULL, 0 );
         printf("\r\n set leds default mode\r\n");
       }
       else if (findCommandPara(cmdbuf, "1", NULL, 0) != -1){
-        SetSerialLedsEffect( LIGHTS_MODE_NOMAL, NULL, 0 );
+        set_serial_leds_effect( LIGHTS_MODE_NOMAL, NULL, 0 );
         printf("\r\n set leds welcome mode\r\n");
       }
       else if (findCommandPara(cmdbuf, "2", NULL, 0) != -1){
-        SetSerialLedsEffect( LIGHTS_MODE_NOMAL, NULL, 0 );
+        set_serial_leds_effect( LIGHTS_MODE_NOMAL, NULL, 0 );
         printf("\r\n set leds goodbye mode\r\n");
       }
       else if (findCommandPara(cmdbuf, "3", NULL, 0) != -1){
-        SetSerialLedsEffect( LIGHTS_MODE_NOMAL, NULL, 0 );
+        set_serial_leds_effect( LIGHTS_MODE_NOMAL, NULL, 0 );
         printf("\r\n set leds idle mode\r\n");
       }
       else if (findCommandPara(cmdbuf, "4", NULL, 0) != -1){
-        SetSerialLedsEffect( LIGHTS_MODE_NOMAL, NULL, 0 );
+        set_serial_leds_effect( LIGHTS_MODE_NOMAL, NULL, 0 );
         printf("\r\n set leds dance mode\r\n");
       }
       else if (findCommandPara(cmdbuf, "5", NULL, 0) != -1){
-        SetSerialLedsEffect( LIGHTS_MODE_NOMAL, NULL, 0 );
+        set_serial_leds_effect( LIGHTS_MODE_NOMAL, NULL, 0 );
         printf("\r\n set leds warming mode\r\n");
       }
 
@@ -504,39 +504,39 @@ void Main_Menu(void)
     }
     else if(strcmp(cmdname, "EFFECT") == 0 || strcmp(cmdname, "E") == 0)  {
       if (findCommandPara(cmdbuf, "0", NULL, 0) != -1){
-        SetSerialLedsEffect( LIGHTS_MODE_NOMAL, NULL, 0 );
+        set_serial_leds_effect( LIGHTS_MODE_NOMAL, NULL, 0 );
         printf("\r\n set leds default effect\r\n");
       }
       else if (findCommandPara(cmdbuf, "1", NULL, 0) != -1){
-        SetSerialLedsEffect( LIGHTS_MODE_NOMAL, NULL, 0 );
+        set_serial_leds_effect( LIGHTS_MODE_NOMAL, NULL, 0 );
         printf("\r\n set leds flow effect\r\n");
       }
       else if (findCommandPara(cmdbuf, "2", NULL, 0) != -1){
-        SetSerialLedsEffect( LIGHTS_MODE_NOMAL, NULL, 0 );
+        set_serial_leds_effect( LIGHTS_MODE_NOMAL, NULL, 0 );
         printf("\r\n set leds meteor effect\r\n");
       }
       else if (findCommandPara(cmdbuf, "3", NULL, 0) != -1){
-        SetSerialLedsEffect( LIGHTS_MODE_NOMAL, NULL, 0 );
+        set_serial_leds_effect( LIGHTS_MODE_NOMAL, NULL, 0 );
         printf("\r\n set leds double meteor effect\r\n");
       }
       else if (findCommandPara(cmdbuf, "4", NULL, 0) != -1){
-        SetSerialLedsEffect( LIGHTS_MODE_NOMAL, NULL, 0 );
+        set_serial_leds_effect( LIGHTS_MODE_NOMAL, NULL, 0 );
         printf("\r\n set leds shine effect\r\n");
       }
       else if (findCommandPara(cmdbuf, "5", NULL, 0) != -1){
-        SetSerialLedsEffect( LIGHTS_MODE_NOMAL, NULL, 0 );
+        set_serial_leds_effect( LIGHTS_MODE_NOMAL, NULL, 0 );
         printf("\r\n set leds red beat effect\r\n");
       }
       else if (findCommandPara(cmdbuf, "6", NULL, 0) != -1){
-        SetSerialLedsEffect( LIGHTS_MODE_NOMAL, NULL, 0 );
+        set_serial_leds_effect( LIGHTS_MODE_NOMAL, NULL, 0 );
         printf("\r\n set leds yellow beat effect\r\n");
       }
       else if (findCommandPara(cmdbuf, "7", NULL, 0) != -1){
-        SetSerialLedsEffect( LIGHTS_MODE_NOMAL, NULL, 0 );
+        set_serial_leds_effect( LIGHTS_MODE_NOMAL, NULL, 0 );
         printf("\r\n set leds water green effect\r\n");
       }
       else if (findCommandPara(cmdbuf, "8", NULL, 0) != -1){
-        SetSerialLedsEffect( LIGHTS_MODE_NOMAL, NULL, 0 );
+        set_serial_leds_effect( LIGHTS_MODE_NOMAL, NULL, 0 );
         printf("\r\n set leds breath colorful effect\r\n");
       }
 

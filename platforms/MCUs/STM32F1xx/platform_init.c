@@ -323,14 +323,14 @@ WEAK INLINE void user_period_tick( void )
   
 }
 
-extern void serialLedsTick( void );
+extern void serial_leds_tick( void );
 extern void SysLed(void);
 void sysTickHandler(void)
 {
   HAL_IncTick();
   no_os_tick ++;
   //user_period_tick();
-  serialLedsTick();
+  serial_leds_tick();
   platform_watchdog_kick( );
   SysLed();
 }

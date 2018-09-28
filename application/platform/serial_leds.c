@@ -39,11 +39,8 @@ __IO uint32_t back_left_buff[BACK_LEFT_LED_NUM] = {0};
 
 __IO uint32_t eyes_buff[EYES_LED_NUM] = {0};
 
-
-OSStatus SerialLeds_Init( void )
+static void init_serial_leds_gpio(void)
 {
-    OSStatus err = kNoErr;
-
     platform_pin_config_t pin_config;
     pin_config.gpio_speed = GPIO_SPEED_HIGH;
     pin_config.gpio_mode = GPIO_MODE_OUTPUT_PP;
@@ -61,15 +58,11 @@ OSStatus SerialLeds_Init( void )
     MicoGpioOutputLow( (mico_gpio_t)MICO_GPIO_BACK_RIGHT_LED );
     MicoGpioOutputLow( (mico_gpio_t)MICO_GPIO_BACK_LEFT_LED );
     MicoGpioOutputLow( (mico_gpio_t)MICO_GPIO_EYES_LED );
-
-    serial_leds_log("serial leds init success!");
-
-    SetSerialLedsEffect( LIGHTS_MODE_NORMAL, NULL, 0 );
-
-    return err;
 }
 
-void MX_USART2_UART_Init(void)
+
+
+static void init_serial_leds_uart(void)
 {
     huart2.Instance = USART2;
     huart2.Init.BaudRate = 115200;
@@ -86,7 +79,8 @@ void MX_USART2_UART_Init(void)
 
 }
 
-void MX_DMA_Init(void) 
+
+static void init_serial_leds_uart_dma_irq(void)
 {
 
     __HAL_RCC_DMA1_CLK_ENABLE();
@@ -100,7 +94,7 @@ void MX_DMA_Init(void)
 }
 
 uint8_t serial_leds_uart_buf[255] = {0x00};
-void uart_dma_init(UART_HandleTypeDef* huart)
+static void uart_dma_init(UART_HandleTypeDef* huart)
 {
 
     GPIO_InitTypeDef GPIO_InitStruct;
@@ -152,12 +146,12 @@ void uart_dma_init(UART_HandleTypeDef* huart)
         __HAL_LINKDMA(huart,hdmatx,hdma_usart2_tx);
 
         HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
-        HAL_NVIC_EnableIRQ(USART2_IRQn);
+        HAL_NVIC_EnableIRQ(USART2_IRQn);    //enable UART2 global interrupt
     }
 
 }
 
-void start_dma_rcv(void)
+static void start_dma_rcv(void)
 {
     huart2.Instance->CR3 |= USART_CR3_DMAR;
 
@@ -169,15 +163,35 @@ void start_dma_rcv(void)
 
 }
 
-void serials_leds_uart_dma_init(void)
+static void serials_leds_uart_dma_init(void)
 {
     //MX_GPIO_Init();
-    MX_DMA_Init();
-    MX_USART2_UART_Init();
+    init_serial_leds_uart_dma_irq();
+    init_serial_leds_uart();
 
     uart_dma_init(&huart2);
     start_dma_rcv();
 }
+
+
+
+OSStatus init_serial_leds( void )
+{
+    OSStatus err = kNoErr;
+
+    serials_leds_uart_dma_init();
+    init_serial_leds_gpio();
+
+    serial_leds_log("serial leds init success!");
+
+    set_serial_leds_effect( LIGHTS_MODE_NORMAL, NULL, 0 );
+
+    return err;
+}
+
+
+
+
 extern const platform_gpio_t            platform_gpio_pins[];
 static void write_0(void)
 {
@@ -428,7 +442,7 @@ void CloseEyes(void)
 #define SHINE_HIGH_SPEED_PERIOD         300/SYSTICK_PERIOD
 #define SHINE_MEDIUM_SPEED_PERIOD       600/SYSTICK_PERIOD
 #define SHINE_LOW_SPEED_PERIOD          1000/SYSTICK_PERIOD
-void SetSerialLedsEffect( const light_mode_t light_mode, color_t  *cur_color, const uint8_t period )
+void set_serial_leds_effect( const light_mode_t light_mode, color_t  *cur_color, const uint8_t period )
 {
     static  light_mode_t pre_mode = LIGHTS_MODE_NONE;
     static  color_t      pre_color;
@@ -611,7 +625,7 @@ inline void WriteReset(mico_gpio_t gpio)
     delay_us(80);
 }
 #if 0
-inline void Write_0(mico_gpio_t gpio)
+inline void write_bit_0(mico_gpio_t gpio)
 {
     LedOutputHigh(gpio);
     delay_300ns();
@@ -620,7 +634,7 @@ inline void Write_0(mico_gpio_t gpio)
     delay_600ns();
 }
 
-inline void Write_1(mico_gpio_t gpio)
+inline void write_bit_1(mico_gpio_t gpio)
 {
 
     LedOutputHigh(gpio);
@@ -630,7 +644,7 @@ inline void Write_1(mico_gpio_t gpio)
     delay_600ns();
 }
 #else
-inline void Write_0(mico_gpio_t gpio)
+inline void write_bit_0(mico_gpio_t gpio)
 {
     LedOutputHigh(gpio);
 
@@ -641,7 +655,7 @@ inline void Write_0(mico_gpio_t gpio)
     delay_500ns();
 }
 
-inline void Write_1(mico_gpio_t gpio)
+inline void write_bit_1(mico_gpio_t gpio)
 {
 
     LedOutputHigh(gpio);
@@ -654,7 +668,7 @@ inline void Write_1(mico_gpio_t gpio)
 }
 #endif
 
-void Write24bit(mico_gpio_t gpio, uint32_t word)
+void write_rgb(mico_gpio_t gpio, uint32_t word)
 {
     uint8_t i;
     uint8_t R;
@@ -673,11 +687,11 @@ void Write24bit(mico_gpio_t gpio, uint32_t word)
 
         if((RGB & 0x800000) == 0)
         {
-            Write_0(gpio);
+            write_bit_0(gpio);
         }
         else
         {
-            Write_1(gpio);
+            write_bit_1(gpio);
         }
 
         RGB <<= 1;
@@ -685,19 +699,19 @@ void Write24bit(mico_gpio_t gpio, uint32_t word)
     }
 }
 
-void SendData(one_wire_led_t led)
+static void send_rgb_data(one_wire_led_t led)
 {
     uint8_t i = one_wire_led[led].led_num;
 
     while(i--)
     {
-        Write24bit(one_wire_led[led].gpio, one_wire_led[led].data_buf[i] );
+        write_rgb(one_wire_led[led].gpio, one_wire_led[led].data_buf[i] );
     }
 
 }
 
 #define LIGHTNESS   (1.25)
-static void WriteColor(one_wire_led_t led, color_t *color)
+static void write_color(one_wire_led_t led, color_t *color)
 {
 
     //uint32_t word = ((color->r/LIGHTNESS)<<16) | ((color->g/LIGHTNESS)<<8) | color->b/LIGHTNESS;
@@ -711,7 +725,7 @@ static void WriteColor(one_wire_led_t led, color_t *color)
     }
 }
 
-bool CheckFrameSum(uint8_t *data, uint8_t data_len)
+bool check_frame_sum(uint8_t *data, uint8_t data_len)
 {
     uint8_t sum = 0;
     uint8_t i = 0;
@@ -734,7 +748,7 @@ bool CheckFrameSum(uint8_t *data, uint8_t data_len)
 
 }
 
-static uint8_t CalCheckSum(uint8_t *data, uint8_t len)
+static uint8_t cal_check_sum(uint8_t *data, uint8_t len)
 {
     uint8_t sum = 0;
     for(uint8_t i = 0; i < len; i++)
@@ -743,20 +757,9 @@ static uint8_t CalCheckSum(uint8_t *data, uint8_t len)
     }
     return sum;
 }
-extern UART_HandleTypeDef huart2;
+
 uint8_t leds_send_buf[LED_FRAME_LEN];
-void LedsSendFrame(rcv_serial_leds_frame_t *leds_frame)
-{
 
-    leds_send_buf[0] = FRAME_HEADER;
-    leds_send_buf[1] = 0x0a;
-    leds_send_buf[2] = FRAME_TYPE_LEDS_CONTROL;
-    memcpy(&leds_send_buf[3], (uint8_t*)leds_frame, sizeof(rcv_serial_leds_frame_t));
-    leds_send_buf[8] = CalCheckSum(leds_send_buf, 8);
-    leds_send_buf[9] = FRAME_FOOTER;
-
-    HAL_StatusTypeDef uart_err = HAL_UART_Transmit(&huart2, leds_send_buf, sizeof(leds_send_buf), 10);
-}
 
 static HAL_StatusTypeDef serials_leds_uart_send(uint8_t *data, uint8_t len)
 {
@@ -780,25 +783,15 @@ static void ack_version(void)
     leds_send_buf[2] = FRAME_TYPE_VERSION;
     memcpy(&leds_send_buf[3], SW_VERSION, version_len);
 
-    leds_send_buf[3 + version_len] = CalCheckSum(leds_send_buf, 3 + version_len);
+    leds_send_buf[3 + version_len] = cal_check_sum(leds_send_buf, 3 + version_len);
     leds_send_buf[4 + version_len] = FRAME_FOOTER;
     serials_leds_uart_send(leds_send_buf, 5 + version_len);
 }
 
 
 
-static void AckLedsFrame(light_mode_t light_mode, color_t *cur_color, uint8_t period )
+static void ack_serial_leds_frame(light_mode_t light_mode, color_t *cur_color, uint8_t period )
 {
-    /*
-       rcv_serial_leds_frame_t leds_frame;
-       leds_frame.color.r = cur_color->r;
-       leds_frame.color.g = cur_color->g;
-       leds_frame.color.b = cur_color->b;
-       leds_frame.cur_light_mode = light_mode;
-       leds_frame.period = period;
-
-       LedsSendFrame(&leds_frame);
-     */
 
     memset(leds_send_buf, 0, sizeof(leds_send_buf));
 
@@ -810,15 +803,15 @@ static void AckLedsFrame(light_mode_t light_mode, color_t *cur_color, uint8_t pe
     leds_send_buf[5] = cur_color->g;
     leds_send_buf[6] = cur_color->b;
     leds_send_buf[7] = period;
-    leds_send_buf[8] = CalCheckSum(leds_send_buf, 8);
+    leds_send_buf[8] = cal_check_sum(leds_send_buf, 8);
     leds_send_buf[9] = FRAME_FOOTER;
     serials_leds_uart_send(leds_send_buf, 10);
 }
 
-void SerialLedsProc(uint8_t const *data)
+void proc_serial_leds(uint8_t const *data)
 {
-    SetSerialLedsEffect( (light_mode_t)data[3], (color_t*)&data[4], data[7] );
-    AckLedsFrame((light_mode_t)data[3], (color_t*)&data[4], data[7] );
+    set_serial_leds_effect( (light_mode_t)data[3], (color_t*)&data[4], data[7] );
+    ack_serial_leds_frame((light_mode_t)data[3], (color_t*)&data[4], data[7] );
 }
 
 led_com_opt_t led_com_opt = {0};
@@ -826,9 +819,9 @@ led_com_opt_t led_com_opt = {0};
 void leds_protocol_period(void)
 {
     uint8_t data_tmp;
-    while(IsFifoEmpty(fifo) == FALSE)
+    while(is_fifo_empty(fifo) == FALSE)
     {
-        FifoGet(fifo, &data_tmp);
+        get_byte_from_fifo(fifo, &data_tmp);
         led_com_opt.rcv_buf[led_com_opt.rcv_cnt] = data_tmp;
         if(led_com_opt.start_flag == TRUE)
         {
@@ -844,12 +837,12 @@ void leds_protocol_period(void)
                     led_com_opt.end_flag = TRUE;
                     led_com_opt.start_flag = FALSE;
                     led_com_opt.rcv_cnt = 0;
-                    if(CheckFrameSum(led_com_opt.rcv_buf,led_com_opt.data_len - 1))
+                    if(check_frame_sum(led_com_opt.rcv_buf,led_com_opt.data_len - 1))
                     {
                         switch(ctype)
                         {
                             case FRAME_TYPE_LEDS_CONTROL:
-                                SerialLedsProc(led_com_opt.rcv_buf);
+                                proc_serial_leds(led_com_opt.rcv_buf);
 
                                 break;
                             case FRAME_TYPE_VERSION:
@@ -893,7 +886,7 @@ void leds_protocol_period(void)
 }
 
 // period: 10ms
-void serialLedsTick( void )
+void serial_leds_tick( void )
 {
 
     for(uint8_t i = FRONT_LEFT_LED; i < LED_NONE; i++)
@@ -906,12 +899,12 @@ void serialLedsTick( void )
 
         if(one_wire_led[i].color_number <= sizeof(charge_color)/sizeof(charge_color[0]))
         {
-            //WriteColor((one_wire_led_t)i, &charge_color[one_wire_led[i].tick % one_wire_led[i].color_number]);
+            //write_color((one_wire_led_t)i, &charge_color[one_wire_led[i].tick % one_wire_led[i].color_number]);
 
-            WriteColor((one_wire_led_t)i, &(one_wire_led[i].color[one_wire_led[i].tick % one_wire_led[i].color_number]));
+            write_color((one_wire_led_t)i, &(one_wire_led[i].color[one_wire_led[i].tick % one_wire_led[i].color_number]));
 #if 1
             DISABLE_INTERRUPTS();
-            SendData((one_wire_led_t)i);
+            send_rgb_data((one_wire_led_t)i);
             ENABLE_INTERRUPTS();
 #endif
         }
@@ -921,7 +914,7 @@ void serialLedsTick( void )
     DISABLE_INTERRUPTS();
     for(uint8_t i = FRONT_LEFT_LED; i < LED_NONE; i++)
     {
-        SendData((one_wire_led_t)i);
+        send_rgb_data((one_wire_led_t)i);
     }
     ENABLE_INTERRUPTS();
 #endif
