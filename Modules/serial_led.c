@@ -8,17 +8,19 @@
 #include <string.h>
 
 
-void cal_color_method_1(volatile uint32_t *buf, uint8_t buf_len, uint32_t tick);
-void cal_color_audi_taillight(volatile uint32_t *buf, uint8_t buf_len, uint32_t tick);
+void cal_color_method_1(volatile uint32_t *buf, color_t *color, uint8_t buf_len, uint32_t tick);
+void cal_color_audi_taillight(volatile uint32_t *buf, color_t *color, uint8_t buf_len, uint32_t tick);
+void cal_color_audi_taillight_single(volatile uint32_t *buf, color_t *color, uint8_t buf_len, uint32_t tick);
+void cal_pure_color(volatile uint32_t *buf, color_t *color, uint8_t buf_len, uint32_t tick);
 
 
-__IO uint32_t front_left_buff[FRONT_LEFT_LED_NUM] = {0};
+__IO uint32_t back_mid_buff[BACK_MID_LED_NUM] = {0};
 __IO uint32_t front_right_buff[FRONT_RIGHT_LED_NUM] = {0};
 __IO uint32_t back_right_buff[BACK_RIGHT_LED_NUM] = {0};
 __IO uint32_t back_left_buff[BACK_LEFT_LED_NUM] = {0};
 
 
-#define LED_LIGHTNESS_PERCENT   100
+#define LED_LIGHTNESS_PERCENT   80
 color_t led_color[] =
 {
     [SERIAL_LED_COLOR_RED_C]       = {255 * LED_LIGHTNESS_PERCENT / 100,     0 * LED_LIGHTNESS_PERCENT / 100  ,     0 * LED_LIGHTNESS_PERCENT / 100},
@@ -79,16 +81,16 @@ color_t  back_right_color[3] =
 
 one_wire_led_para_t one_wire_led[] =
 {
-    [FRONT_LEFT_LED] =
+    [BACK_MID] =
     {
-        .gpio               = PLATFORM_GPIO_SERIAL_LED_FRONT_LEFT,
+        .gpio               = PLATFORM_GPIO_SERIAL_LED_BACK_MID,
 //        .color              = front_left_color,
         .color_number       = 1,
         .period             = 5 * OS_TICKS_PER_SEC / 10,
-        .data_buf           = front_left_buff,
-        .led_num            = FRONT_LEFT_LED_NUM,
+        .data_buf           = back_mid_buff,
+        .led_num            = BACK_MID_LED_NUM,
         .start_time         = 0,
-        .method             = (cal_color_method_fn)cal_color_method_1,
+        .method             = (cal_color_method_fn)cal_pure_color,
     },
     [FRONT_RIGHT_LED] =
     {
@@ -110,7 +112,7 @@ one_wire_led_para_t one_wire_led[] =
         .data_buf           = back_right_buff,
         .led_num            = BACK_RIGHT_LED_NUM,
         .start_time         = 0,
-        .method             = (cal_color_method_fn)cal_color_method_1,
+        .method             = (cal_color_method_fn)cal_color_audi_taillight_single,
     },
     [BACK_LEFT_LED] =
     {
@@ -121,7 +123,7 @@ one_wire_led_para_t one_wire_led[] =
         .data_buf           = back_left_buff,
         .led_num            = BACK_LEFT_LED_NUM,
         .start_time         = 0,
-        .method             = (cal_color_method_fn)cal_color_method_1,
+        .method             = (cal_color_method_fn)cal_color_audi_taillight_single,
     },
 };
 
@@ -190,7 +192,22 @@ static void send_rgb_data(one_wire_led_t led)
 }
 
 
-void cal_color_method_1(volatile uint32_t *buf, uint8_t buf_len, uint32_t tick)
+
+void cal_pure_color(volatile uint32_t *buf, color_t *color, uint8_t buf_len, uint32_t tick)
+{
+
+    uint32_t color_int = 0;
+
+
+    color_int = (color->r << 16) | (color->g << 8) | (color->b);
+    for(uint8_t i = 0; i < buf_len; i++)
+    {
+        buf[i] = color_int;
+    }
+}
+
+
+void cal_color_method_1(volatile uint32_t *buf, color_t *color_, uint8_t buf_len, uint32_t tick)
 {
     color_t color = {0 , 0 ,0};
     uint32_t color_int = 0;
@@ -227,7 +244,7 @@ void cal_color_method_1(volatile uint32_t *buf, uint8_t buf_len, uint32_t tick)
 /*
 cal_color_method_2: 类似于奥迪尾灯效果
 */
-void cal_color_audi_taillight(volatile uint32_t *buf, uint8_t buf_len, uint32_t tick)
+void cal_color_audi_taillight(volatile uint32_t *buf, color_t *color_, uint8_t buf_len, uint32_t tick)
 {
 #define AUDI_TAILLIGHT_ON_DELAY             4
 #define AUDI_TAILLIGHT_OFF_DELAY            4
@@ -309,9 +326,62 @@ void cal_color_audi_taillight(volatile uint32_t *buf, uint8_t buf_len, uint32_t 
 }
 
 
-static void write_color(one_wire_led_t led, uint8_t len, uint32_t tick, cal_color_method_fn method)
+
+/*
+cal_color_method_2: 类似于奥迪尾灯效果
+*/
+void cal_color_audi_taillight_single(volatile uint32_t *buf, color_t *color, uint8_t buf_len, uint32_t tick)
 {
-    method(one_wire_led[led].data_buf, len, tick);
+#define AUDI_TAILLIGHT_ON_DELAY             4
+#define AUDI_TAILLIGHT_OFF_DELAY            4
+#define AUDI_TAILLIGHT_RESOLUTION           13
+#define AUDI_TAILLIGHT_TICK_MAX             (AUDI_TAILLIGHT_ON_DELAY + AUDI_TAILLIGHT_OFF_DELAY + AUDI_TAILLIGHT_RESOLUTION)
+
+    uint32_t color_int = (color->r << 16) | (color->g << 8) | (color->b);
+    //tick *= 2;    //speed up the effection
+#if METHOD_2_TICK_MAX > METHOD_2_RESOLUTION
+    uint32_t tick_mod = tick % (METHOD_2_TICK_MAX);
+#else
+    uint32_t tick_mod = tick % (AUDI_TAILLIGHT_TICK_MAX + 1);
+#endif
+
+#if METHOD_2_TICK_MAX > METHOD_2_RESOLUTION
+    if(tick_mod < METHOD_2_RESOLUTION)
+#else
+    if(tick_mod <= AUDI_TAILLIGHT_RESOLUTION)
+#endif
+    {
+        for(uint8_t i = 0; i < buf_len * tick_mod / AUDI_TAILLIGHT_RESOLUTION; i++)
+        {
+            buf[i] = color_int;
+        }
+
+        for(uint8_t i = buf_len * tick_mod / AUDI_TAILLIGHT_RESOLUTION; i < buf_len; i++)
+        {
+            buf[i] = 0;
+        }
+    }
+    else if(tick_mod < AUDI_TAILLIGHT_RESOLUTION + AUDI_TAILLIGHT_ON_DELAY)
+    {
+        for(uint8_t i = 0; i < buf_len; i++)
+        {
+            buf[i] = color_int;
+        }
+    }
+    else
+    {
+        for(uint8_t i = 0; i < buf_len; i++)
+        {
+            buf[i] = 0;
+        }
+    }
+}
+
+
+
+static void write_color(one_wire_led_t led, color_t *color, uint8_t len, uint32_t tick, cal_color_method_fn method)
+{
+    method(one_wire_led[led].data_buf, color, len, tick);
 }
 
 
@@ -355,16 +425,36 @@ void set_serial_leds_effect(const light_mode_t light_mode, color_t  *cur_color, 
     switch(light_mode)
     {
         case LIGHTS_MODE_NORMAL:    //test effect
-            for(uint8_t i = FRONT_LEFT_LED; i <= BACK_RIGHT_LED; i++)
-            {
-                one_wire_led[i].period = 1 * OS_TICKS_PER_SEC / 20;
-                one_wire_led[i].tick = 0;
-                one_wire_led[i].method = cal_color_audi_taillight;
-            }
+
+            one_wire_led[FRONT_RIGHT_LED].period = 1 * OS_TICKS_PER_SEC / 20;
+            one_wire_led[FRONT_RIGHT_LED].tick = 0;
+            one_wire_led[FRONT_RIGHT_LED].color_number = 1;
+            one_wire_led[FRONT_RIGHT_LED].color[0] = led_color[SERIAL_LED_COLOR_WHITE_C];
+            one_wire_led[FRONT_RIGHT_LED].method = cal_pure_color;
+
+            one_wire_led[BACK_LEFT_LED].period = 1 * OS_TICKS_PER_SEC / 20;
+            one_wire_led[BACK_LEFT_LED].tick = 0;
+            one_wire_led[BACK_LEFT_LED].color_number = 1;
+            one_wire_led[BACK_LEFT_LED].color[0] = led_color[SERIAL_LED_COLOR_ORANGE_C];
+            one_wire_led[BACK_LEFT_LED].method = cal_color_audi_taillight_single;
+
+
+            one_wire_led[BACK_RIGHT_LED].period = 1 * OS_TICKS_PER_SEC / 20;
+            one_wire_led[BACK_RIGHT_LED].tick = 0;
+            one_wire_led[BACK_RIGHT_LED].color_number = 1;
+            one_wire_led[BACK_RIGHT_LED].color[0] = led_color[SERIAL_LED_COLOR_ORANGE_C];
+            one_wire_led[BACK_RIGHT_LED].method = cal_color_audi_taillight_single;
+
+            one_wire_led[BACK_MID].period = 1 * OS_TICKS_PER_SEC;
+            one_wire_led[BACK_MID].tick = 0;
+            one_wire_led[BACK_MID].color_number = 1;
+            one_wire_led[BACK_MID].color[0] = led_color[SERIAL_LED_COLOR_CYAN_C];
+            one_wire_led[BACK_MID].method = cal_pure_color;
             open_eyes();
             break;
+
         case LIGHTS_MODE_ERROR:
-            for(uint8_t i = FRONT_LEFT_LED; i <= BACK_RIGHT_LED; i++)
+            for(uint8_t i = BACK_MID; i <= BACK_RIGHT_LED; i++)
             {
                 one_wire_led[(one_wire_led_t)i].color[0] = led_color[SERIAL_LED_COLOR_RED_C];
                 one_wire_led[(one_wire_led_t)i].color[1] = led_color[SERIAL_LED_COLOR_NONE_C];
@@ -375,7 +465,7 @@ void set_serial_leds_effect(const light_mode_t light_mode, color_t  *cur_color, 
             close_eyes();
             break;
         case LIGHTS_MODE_COM_ERROR:
-            for(uint8_t i = FRONT_LEFT_LED; i <= BACK_RIGHT_LED; i++)
+            for(uint8_t i = BACK_MID; i <= BACK_RIGHT_LED; i++)
             {
                 one_wire_led[(one_wire_led_t)i].color[0] = led_color[SERIAL_LED_COLOR_RED_C];
                 one_wire_led[(one_wire_led_t)i].color[1] = led_color[SERIAL_LED_COLOR_NONE_C];
@@ -387,7 +477,7 @@ void set_serial_leds_effect(const light_mode_t light_mode, color_t  *cur_color, 
             break;
 
         case LIGHTS_MODE_LOW_POWER:
-            for(uint8_t i = FRONT_LEFT_LED; i <= BACK_RIGHT_LED; i++)
+            for(uint8_t i = BACK_MID; i <= BACK_RIGHT_LED; i++)
             {
                 one_wire_led[(one_wire_led_t)i].color[0] = led_color[SERIAL_LED_COLOR_RED_C];
                 one_wire_led[(one_wire_led_t)i].color[1] = led_color[SERIAL_LED_COLOR_NONE_C];
@@ -399,7 +489,7 @@ void set_serial_leds_effect(const light_mode_t light_mode, color_t  *cur_color, 
             break;
         case LIGHTS_MODE_CHARGING_POWER_LOW:
 
-            for(uint8_t i = FRONT_LEFT_LED; i <= BACK_RIGHT_LED; i++)
+            for(uint8_t i = BACK_MID; i <= BACK_RIGHT_LED; i++)
             {
                 one_wire_led[(one_wire_led_t)i].color[0] = led_color[SERIAL_LED_COLOR_RED_C];
                 one_wire_led[(one_wire_led_t)i].color[1] = led_color[SERIAL_LED_COLOR_ORANGE_C];
@@ -412,7 +502,7 @@ void set_serial_leds_effect(const light_mode_t light_mode, color_t  *cur_color, 
             break;
         case LIGHTS_MODE_CHARGING_POWER_MEDIUM:
 
-            for(uint8_t i = FRONT_LEFT_LED; i <= BACK_RIGHT_LED; i++)
+            for(uint8_t i = BACK_MID; i <= BACK_RIGHT_LED; i++)
             {
                 one_wire_led[(one_wire_led_t)i].color[0] = led_color[SERIAL_LED_COLOR_ORANGE_C];
                 one_wire_led[(one_wire_led_t)i].color[1] = led_color[SERIAL_LED_COLOR_GREEN_C];
@@ -425,7 +515,7 @@ void set_serial_leds_effect(const light_mode_t light_mode, color_t  *cur_color, 
             break;
         case LIGHTS_MODE_CHARGING_FULL:
 
-            for(uint8_t i = FRONT_LEFT_LED; i <= BACK_RIGHT_LED; i++)
+            for(uint8_t i = BACK_MID; i <= BACK_RIGHT_LED; i++)
             {
                 one_wire_led[(one_wire_led_t)i].color[0] = led_color[SERIAL_LED_COLOR_GREEN_C];
                 one_wire_led[(one_wire_led_t)i].color_number = 1;
@@ -435,27 +525,27 @@ void set_serial_leds_effect(const light_mode_t light_mode, color_t  *cur_color, 
 
             close_eyes();
             break;
-        case LIGHTS_MODE_TURN_LEFT:
-            for(uint8_t i = FRONT_LEFT_LED; i <= BACK_RIGHT_LED; i++)
-            {
-                if((i == FRONT_LEFT_LED) || ( i == BACK_LEFT_LED))
-                {
-                    one_wire_led[(one_wire_led_t)i].color[0] = led_color[SERIAL_LED_COLOR_ORANGE_C];
-                }
-                else
-                {
-                    one_wire_led[(one_wire_led_t)i].color[0] = led_color[SERIAL_LED_COLOR_NONE_C];
-                }
+//        case LIGHTS_MODE_TURN_LEFT:
+//            for(uint8_t i = FRONT_LEFT_LED; i <= BACK_RIGHT_LED; i++)
+//            {
+//                if((i == FRONT_LEFT_LED) || ( i == BACK_LEFT_LED))
+//                {
+//                    one_wire_led[(one_wire_led_t)i].color[0] = led_color[SERIAL_LED_COLOR_ORANGE_C];
+//                }
+//                else
+//                {
+//                    one_wire_led[(one_wire_led_t)i].color[0] = led_color[SERIAL_LED_COLOR_NONE_C];
+//                }
 
-                one_wire_led[(one_wire_led_t)i].color[1] = led_color[SERIAL_LED_COLOR_NONE_C];
-                one_wire_led[(one_wire_led_t)i].color_number = 2;
-                one_wire_led[(one_wire_led_t)i].period = SHINE_MEDIUM_SPEED_PERIOD;
-                one_wire_led[(one_wire_led_t)i].tick = 0;
-            }
-            open_eyes();
-            break;
+//                one_wire_led[(one_wire_led_t)i].color[1] = led_color[SERIAL_LED_COLOR_NONE_C];
+//                one_wire_led[(one_wire_led_t)i].color_number = 2;
+//                one_wire_led[(one_wire_led_t)i].period = SHINE_MEDIUM_SPEED_PERIOD;
+//                one_wire_led[(one_wire_led_t)i].tick = 0;
+//            }
+//            open_eyes();
+//            break;
         case LIGHTS_MODE_TURN_RIGHT:
-            for(uint8_t i = FRONT_LEFT_LED; i <= BACK_RIGHT_LED; i++)
+            for(uint8_t i = BACK_MID; i <= BACK_RIGHT_LED; i++)
             {
                 if((i == FRONT_RIGHT_LED) || ( i == BACK_RIGHT_LED))
                 {
@@ -474,7 +564,7 @@ void set_serial_leds_effect(const light_mode_t light_mode, color_t  *cur_color, 
             open_eyes();
             break;
         case LIGHTS_MODE_EMERGENCY_STOP:
-            for(uint8_t i = FRONT_LEFT_LED; i <= BACK_RIGHT_LED; i++)
+            for(uint8_t i = BACK_MID; i <= BACK_RIGHT_LED; i++)
             {
                 one_wire_led[(one_wire_led_t)i].color[0] = led_color[SERIAL_LED_COLOR_RED_C];//led_color[WHITE_C];
                 one_wire_led[(one_wire_led_t)i].color_number = 1;
@@ -484,7 +574,7 @@ void set_serial_leds_effect(const light_mode_t light_mode, color_t  *cur_color, 
             close_eyes();
             break;
         case LIGHTS_MODE_SETTING:
-            for(uint8_t i = FRONT_LEFT_LED; i <= BACK_RIGHT_LED; i++)
+            for(uint8_t i = BACK_MID; i <= BACK_RIGHT_LED; i++)
             {
                 memcpy(&led_color[SERIAL_LED_COLOR_SETTING_C], cur_color, sizeof(color_t));
                 one_wire_led[(one_wire_led_t)i].color[0] = led_color[SERIAL_LED_COLOR_SETTING_C];
@@ -502,7 +592,7 @@ void set_serial_leds_effect(const light_mode_t light_mode, color_t  *cur_color, 
 
 void serial_leds_tick(void)
 {
-    for(uint8_t i = FRONT_LEFT_LED; i < LED_NONE; i++)
+    for(uint8_t i = BACK_MID; i < LED_NONE; i++)
     {
         if(get_tick() - one_wire_led[i].start_time >= one_wire_led[i].period)
         {
@@ -511,7 +601,7 @@ void serial_leds_tick(void)
 
             if(one_wire_led[i].color_number <= 2)
             {
-                write_color((one_wire_led_t)i, one_wire_led[i].led_num, one_wire_led[i].tick, one_wire_led[i].method);
+                write_color((one_wire_led_t)i, &(one_wire_led[i].color[one_wire_led[i].tick % one_wire_led[i].color_number]),one_wire_led[i].led_num, one_wire_led[i].tick, one_wire_led[i].method);
                 OS_ENTER_CRITICAL();
                 send_rgb_data((one_wire_led_t)i);
                 OS_EXIT_CRITICAL();

@@ -6,10 +6,10 @@
 #define serial_led_output_high(gpio)    platform_gpio_pins[gpio].GPIOx->BSRR = platform_gpio_pins[gpio].GPIO_Pin
 #define serial_led_output_low(gpio)     platform_gpio_pins[gpio].GPIOx->BRR = platform_gpio_pins[gpio].GPIO_Pin
 
-#define FRONT_LEFT_LED_NUM          30
-#define FRONT_RIGHT_LED_NUM         20
+#define BACK_MID_LED_NUM            12
+#define FRONT_RIGHT_LED_NUM         41
 #define BACK_RIGHT_LED_NUM          10
-#define BACK_LEFT_LED_NUM           39
+#define BACK_LEFT_LED_NUM           10
 
 typedef enum
 {
@@ -69,7 +69,7 @@ typedef enum
 
 typedef enum
 {
-    FRONT_LEFT_LED = 0,
+    BACK_MID = 0,
     FRONT_RIGHT_LED,
     BACK_LEFT_LED,
     BACK_RIGHT_LED,
@@ -79,7 +79,7 @@ typedef enum
 
 }one_wire_led_t;
 
-typedef void (*cal_color_method_fn)(volatile uint32_t *buf, uint8_t buf_len, uint32_t tick);
+typedef void (*cal_color_method_fn)(volatile uint32_t *buf, color_t *color, uint8_t buf_len, uint32_t tick);
 
 typedef struct
 {

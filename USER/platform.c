@@ -17,8 +17,9 @@ const platform_gpio_t platform_gpio_pins[] =
     [PLATFORM_GPIO_SYS_LED]                         = { GPIOB,  GPIO_Pin_3},
 
     [PLATFORM_GPIO_SERIAL_LED_FRONT_RIGHT]          = {GPIOA, GPIO_Pin_3},
-    [PLATFORM_GPIO_SERIAL_LED_FRONT_LEFT]           = {GPIOA, GPIO_Pin_0},
-    [PLATFORM_GPIO_SERIAL_LED_BACK_LEFT]            = {GPIOA, GPIO_Pin_1},
+
+    [PLATFORM_GPIO_SERIAL_LED_BACK_LEFT]            = {GPIOA, GPIO_Pin_0},
+    [PLATFORM_GPIO_SERIAL_LED_BACK_MID]             = {GPIOA, GPIO_Pin_1},
     [PLATFORM_GPIO_SERIAL_LED_BACK_RIGHT]           = {GPIOA, GPIO_Pin_2},
 
 };

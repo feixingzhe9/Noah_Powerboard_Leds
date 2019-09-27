@@ -186,7 +186,7 @@ uint16_t CmdProcessing(can_id_union *id, uint8_t *data_in, uint16_t data_len, ui
     id->can_id_t.ack = 1;
     id->can_id_t.ack = 1;
     id->can_id_t.dest_mac_id = id->can_id_t.src_mac_id;
-    id->can_id_t.src_mac_id = POWERBOARD_CAN_MAC_SRC_ID;
+    id->can_id_t.src_mac_id = SERIAL_LED_CAN_MAC_SRC_ID;
     id->can_id_t.res = 0;
     switch(id->can_id_t.func_id)
     {
@@ -347,7 +347,7 @@ void can_protocol_task(void *pdata)
             seg_polo = rx_buf.can_data_t.seg_polo;
             seg_num = rx_buf.can_data_t.seg_num;
             OSMemPut(can_rcv_buf_mem_handle, can_rcv_buf);
-            if(id.can_id_t.dest_mac_id == POWERBOARD_CAN_MAC_SRC_ID)
+            if(id.can_id_t.dest_mac_id == SERIAL_LED_CAN_MAC_SRC_ID)
             {
                 if(id.can_id_t.ack == 1)
                 {
