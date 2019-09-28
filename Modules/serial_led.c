@@ -20,7 +20,7 @@ __IO uint32_t back_right_buff[BACK_RIGHT_LED_NUM] = {0};
 __IO uint32_t back_left_buff[BACK_LEFT_LED_NUM] = {0};
 
 
-#define LED_LIGHTNESS_PERCENT   80
+#define LED_LIGHTNESS_PERCENT   100
 color_t led_color[] =
 {
     [SERIAL_LED_COLOR_RED_C]       = {255 * LED_LIGHTNESS_PERCENT / 100,     0 * LED_LIGHTNESS_PERCENT / 100  ,     0 * LED_LIGHTNESS_PERCENT / 100},
@@ -30,8 +30,9 @@ color_t led_color[] =
     [SERIAL_LED_COLOR_WHITE_C]     = {255 * LED_LIGHTNESS_PERCENT / 100,    255 * LED_LIGHTNESS_PERCENT / 100,      255 * LED_LIGHTNESS_PERCENT / 100},
     [SERIAL_LED_COLOR_CYAN_C]      = {0 * LED_LIGHTNESS_PERCENT / 100  ,    255 * LED_LIGHTNESS_PERCENT / 100,      255 * LED_LIGHTNESS_PERCENT / 100},
     [SERIAL_LED_COLOR_GOLD_C]      = {255 * LED_LIGHTNESS_PERCENT / 100,    215 * LED_LIGHTNESS_PERCENT / 100,      0 * LED_LIGHTNESS_PERCENT / 100},
-    [SERIAL_LED_COLOR_SETTING_C]   = {0 * LED_LIGHTNESS_PERCENT / 100  ,    0 * LED_LIGHTNESS_PERCENT / 100  ,      0 * LED_LIGHTNESS_PERCENT / 100  },
-    [SERIAL_LED_COLOR_NONE_C]      = {0 * LED_LIGHTNESS_PERCENT / 100  ,    0 * LED_LIGHTNESS_PERCENT / 100  ,      0 * LED_LIGHTNESS_PERCENT / 100  },
+    [SERIAL_LED_COLOR_SETTING_C]   = {0 * LED_LIGHTNESS_PERCENT / 100  ,    0 * LED_LIGHTNESS_PERCENT / 100  ,      0 * LED_LIGHTNESS_PERCENT / 100},
+    [SERIAL_LED_COLOR_NONE_C]      = {0 * LED_LIGHTNESS_PERCENT / 100  ,    0 * LED_LIGHTNESS_PERCENT / 100  ,      0 * LED_LIGHTNESS_PERCENT / 100},
+    [SERIAL_LED_COLOR_YELLOW_C]    = {255 * LED_LIGHTNESS_PERCENT / 100,    255 * LED_LIGHTNESS_PERCENT / 100,      0 * LED_LIGHTNESS_PERCENT / 100}
 };
 
 light_mode_para_t light_mode_para[] =
@@ -435,14 +436,14 @@ void set_serial_leds_effect(const light_mode_t light_mode, color_t  *cur_color, 
             one_wire_led[BACK_LEFT_LED].period = 1 * OS_TICKS_PER_SEC / 20;
             one_wire_led[BACK_LEFT_LED].tick = 0;
             one_wire_led[BACK_LEFT_LED].color_number = 1;
-            one_wire_led[BACK_LEFT_LED].color[0] = led_color[SERIAL_LED_COLOR_ORANGE_C];
+            one_wire_led[BACK_LEFT_LED].color[0] = led_color[SERIAL_LED_COLOR_YELLOW_C];
             one_wire_led[BACK_LEFT_LED].method = cal_color_audi_taillight_single;
 
 
             one_wire_led[BACK_RIGHT_LED].period = 1 * OS_TICKS_PER_SEC / 20;
             one_wire_led[BACK_RIGHT_LED].tick = 0;
             one_wire_led[BACK_RIGHT_LED].color_number = 1;
-            one_wire_led[BACK_RIGHT_LED].color[0] = led_color[SERIAL_LED_COLOR_ORANGE_C];
+            one_wire_led[BACK_RIGHT_LED].color[0] = led_color[SERIAL_LED_COLOR_YELLOW_C];
             one_wire_led[BACK_RIGHT_LED].method = cal_color_audi_taillight_single;
 
             one_wire_led[BACK_MID].period = 1 * OS_TICKS_PER_SEC;
