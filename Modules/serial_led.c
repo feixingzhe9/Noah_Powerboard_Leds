@@ -28,6 +28,7 @@ color_t led_color[] =
     [SERIAL_LED_COLOR_BLUE_C]      = {0 * LED_LIGHTNESS_PERCENT / 100  ,    0 * LED_LIGHTNESS_PERCENT / 100  ,      255 /** LED_LIGHTNESS_PERCENT / 100*/},
     [SERIAL_LED_COLOR_ORANGE_C]    = {0xc8 * LED_LIGHTNESS_PERCENT / 100,   0x32 * LED_LIGHTNESS_PERCENT / 100,     0x00 * LED_LIGHTNESS_PERCENT / 100},
     [SERIAL_LED_COLOR_WHITE_C]     = {255 * LED_LIGHTNESS_PERCENT / 100,    255 * LED_LIGHTNESS_PERCENT / 100,      255 * LED_LIGHTNESS_PERCENT / 100},
+    [SERIAL_LED_COLOR_WHITE_1_C]   = {255 * 20 / 100,                       255 * 20 / 100,                         255 * 20 / 100},
     [SERIAL_LED_COLOR_CYAN_C]      = {0 * LED_LIGHTNESS_PERCENT / 100  ,    255 * LED_LIGHTNESS_PERCENT / 100,      255 * LED_LIGHTNESS_PERCENT / 100},
     [SERIAL_LED_COLOR_GOLD_C]      = {255 * LED_LIGHTNESS_PERCENT / 100,    215 * LED_LIGHTNESS_PERCENT / 100,      0 * LED_LIGHTNESS_PERCENT / 100},
     [SERIAL_LED_COLOR_SETTING_C]   = {0 * LED_LIGHTNESS_PERCENT / 100  ,    0 * LED_LIGHTNESS_PERCENT / 100  ,      0 * LED_LIGHTNESS_PERCENT / 100},
@@ -430,7 +431,7 @@ void set_serial_leds_effect(const light_mode_t light_mode, color_t  *cur_color, 
             one_wire_led[FRONT_RIGHT_LED].period = 1 * OS_TICKS_PER_SEC / 20;
             one_wire_led[FRONT_RIGHT_LED].tick = 0;
             one_wire_led[FRONT_RIGHT_LED].color_number = 1;
-            one_wire_led[FRONT_RIGHT_LED].color[0] = led_color[SERIAL_LED_COLOR_WHITE_C];
+            one_wire_led[FRONT_RIGHT_LED].color[0] = led_color[SERIAL_LED_COLOR_WHITE_1_C];
             one_wire_led[FRONT_RIGHT_LED].method = cal_pure_color;
 
             one_wire_led[BACK_LEFT_LED].period = 1 * OS_TICKS_PER_SEC / 20;

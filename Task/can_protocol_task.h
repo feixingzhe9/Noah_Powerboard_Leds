@@ -21,7 +21,7 @@ void can_send_task(void *pdata);
 
 
 #define HW_VERSION                      "M50_LECCTL_V0.1"
-#define SW_VERSION                      "ND_SL_0.0.1"
+#define SW_VERSION                      "ND_SL_0.0.2"
 #define PROTOCOL_VERSION                "20170619P0001"
 
 #define CMD_NOT_FOUND   0
